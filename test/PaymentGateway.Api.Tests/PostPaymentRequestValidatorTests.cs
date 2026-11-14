@@ -61,7 +61,7 @@ public class PostPaymentRequestValidatorTests
 
     [Theory]
     [InlineData("1234567890123")]
-    [InlineData("123456789012345678")]
+    [InlineData("12345678901234567890")]
     [InlineData("123456789012345A")]
     [InlineData("1234-5678-9012-3456")]
     [InlineData("1234 5678 9012 3456")]
@@ -75,7 +75,7 @@ public class PostPaymentRequestValidatorTests
         using var scope = new AssertionScope();
         result.Errors.Should().NotBeEmpty();
         result.Errors.Count.Should().Be(1);
-        result.Errors[0].ErrorMessage.Should().Be("Card number must be 14-17 digits");       
+        result.Errors[0].ErrorMessage.Should().Be("Card number must be 14-19 digits");       
     }
 
     [Theory]
