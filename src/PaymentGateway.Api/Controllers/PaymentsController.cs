@@ -2,6 +2,7 @@
 
 using Microsoft.AspNetCore.Mvc;
 
+using PaymentGateway.Api.Extensions;
 using PaymentGateway.Api.Models;
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
@@ -14,24 +15,33 @@ namespace PaymentGateway.Api.Controllers;
 public class PaymentsController(
     IValidator<PostPaymentRequest> validator,
     IBankingClient bankingClient,
-    PaymentsRepository paymentsRepository) : Controller
+    PaymentsRepository paymentsRepository,
+    ILogger<PaymentsController> logger) : Controller
 {
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PostPaymentResponse?>> GetPaymentAsync(Guid id)
     {
-        var payment = paymentsRepository.Get(id);
+        logger.LogInformation("Getting payment with ID {id}", id);
+        
+        // in a real-world app, the calls to the repository would be async calls;
+        var payment = await Task.FromResult(paymentsRepository.Get(id));
         if (payment == null)
+        {
+            logger.LogWarning("Payment with ID {id} not found", id);           
             return NotFound();
+        }
 
-        return new OkObjectResult(payment);
+        return await Task.FromResult(new OkObjectResult(payment));
     }
 
     [HttpPost]
     public async Task<ActionResult<PostPaymentResponse>> PostPaymentAsync([FromBody] PostPaymentRequest request)
     {
+        logger.LogInformation("Processing payment for {amount} {currency} to {cardNumber}", request.Amount, request.Currency, request.CardNumber.MaskAllButLastFour());       
         var validation = await validator.ValidateAsync(request);
         if (!validation.IsValid)
         {
+            logger.LogInformation("Payment validation failed: {errors}", validation.Errors);           
             return new OkObjectResult(new PostPaymentResponse
             {
                 Id = Guid.Empty,
@@ -54,30 +64,19 @@ public class PaymentsController(
         };
         
         var bankingResponse = await bankingClient.AuthorizePaymentAsync(authorisePaymentRequest);
-        if (!bankingResponse.Authorized)
-        {
-            return new OkObjectResult(new PostPaymentResponse
-            {
-                Id = Guid.Empty,
-                Status = PaymentStatus.Declined,
-                CardNumberLastFour = request.CardNumber[^4..],
-                ExpiryMonth = request.ExpiryMonth,
-                ExpiryYear = request.ExpiryYear,
-                Currency = request.Currency,
-                Amount = request.Amount
-            });
-        }
-
+        logger.LogInformation("Banking response: {response}", bankingResponse);       
+        
         var response = new PostPaymentResponse
         {
             Id = Guid.NewGuid(),
-            Status = PaymentStatus.Authorized,
+            Status = bankingResponse.Authorized ? PaymentStatus.Authorized : PaymentStatus.Declined,
             CardNumberLastFour = request.CardNumber[^4..],
             ExpiryMonth = request.ExpiryMonth,
             ExpiryYear = request.ExpiryYear,
             Currency = request.Currency,
             Amount = request.Amount
         };
+        
         paymentsRepository.Add(response);
         return new OkObjectResult(response);       
     }
