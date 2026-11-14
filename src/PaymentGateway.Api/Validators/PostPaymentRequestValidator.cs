@@ -13,8 +13,8 @@ public class PostPaymentRequestValidator : AbstractValidator<PostPaymentRequest>
 
     public PostPaymentRequestValidator()
     {
-        RuleFor(x => x.CardNumber).Matches("^\\d{14,17}$")
-            .WithMessage("Card number must be 14-17 digits");
+        RuleFor(x => x.CardNumber).Matches("^\\d{14,19}$")
+            .WithMessage("Card number must be 14-19 digits");
         
         RuleFor(x => x.ExpiryMonth).InclusiveBetween(1,12)
             .WithMessage("Expiry month must be between 1 and 12");
@@ -22,6 +22,9 @@ public class PostPaymentRequestValidator : AbstractValidator<PostPaymentRequest>
         RuleFor(x => $"{x.ExpiryYear:0000}-{x.ExpiryMonth:00}")
             .GreaterThan($"{DateTime.Today.Year:0000}-{DateTime.Today.Month:00}")
             .WithMessage("Expiry date must be in the future");
+        
+        RuleFor(x => x.Currency).Matches("^[A-Z]{3}$")
+            .WithMessage("Currency must be 3 uppercase letters");
         
         RuleFor(x => x.Currency).Must(x => ValidCurrencies.Contains(x))
             .WithMessage("Currency must be USD, EUR or GBP");
