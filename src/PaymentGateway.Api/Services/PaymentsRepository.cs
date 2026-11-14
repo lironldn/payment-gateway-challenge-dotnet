@@ -1,19 +1,20 @@
-﻿using PaymentGateway.Api.Models.Responses;
+﻿using PaymentGateway.Api.Exceptions;
+using PaymentGateway.Api.Models.Responses;
 
 namespace PaymentGateway.Api.Services;
 
 public class PaymentsRepository
 {
-    public Dictionary<Guid,PostPaymentResponse> Payments = new();
+    private readonly Dictionary<Guid,PostPaymentResponse> _payments = new();
     
     public void Add(PostPaymentResponse payment)
     {
-        if (!Payments.TryAdd(payment.Id, payment))
-            throw new ArgumentException("Payment with that ID already exists");
+        if (!_payments.TryAdd(payment.Id, payment))
+            throw new ConflictException($"Payment with ID '{payment.Id}' already exists");
     }
 
     public PostPaymentResponse? Get(Guid id)
     {
-        return Payments.GetValueOrDefault(id);
+        return _payments.GetValueOrDefault(id);
     }
 }
