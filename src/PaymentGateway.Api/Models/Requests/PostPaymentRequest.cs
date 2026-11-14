@@ -1,11 +1,26 @@
-﻿namespace PaymentGateway.Api.Models.Requests;
+﻿using System.Text.Json.Serialization;
 
-public class PostPaymentRequest
+using PaymentGateway.Api.Extensions;
+
+namespace PaymentGateway.Api.Models.Requests;
+
+public record PostPaymentRequest
 {
-    public int CardNumberLastFour { get; set; }
-    public int ExpiryMonth { get; set; }
-    public int ExpiryYear { get; set; }
-    public string Currency { get; set; }
-    public int Amount { get; set; }
-    public int Cvv { get; set; }
+    [JsonPropertyName( "card_number")]
+    public required string CardNumber { get; set; }
+
+    [JsonPropertyName("expiry_date")]
+    public required string ExpiryDate { get; set; }
+
+    public int ExpiryMonth => ExpiryDate.ExpiryDateMonth();
+    public int ExpiryYear => ExpiryDate.ExpiryDateYear();
+    
+    [JsonPropertyName("currency")]
+    public required string Currency { get; set; }
+    
+    [JsonPropertyName("amount")]
+    public required int Amount { get; set; }
+    
+    [JsonPropertyName("cvv")]
+    public required string Cvv { get; set; }
 }
