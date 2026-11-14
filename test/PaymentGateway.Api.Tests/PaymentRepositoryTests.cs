@@ -1,5 +1,9 @@
 using FluentAssertions;
 
+using Microsoft.Extensions.Logging;
+
+using NSubstitute;
+
 using PaymentGateway.Api.Exceptions;
 using PaymentGateway.Api.Models;
 using PaymentGateway.Api.Models.Responses;
@@ -9,11 +13,13 @@ namespace PaymentGateway.Api.Tests;
 
 public class PaymentRepositoryTests
 {
+    private static PaymentsRepository CreateSut() =>
+        new(Substitute.For<ILogger<PaymentsRepository>>());
     [Fact]
     public void GetPayment_ReturnsPayment()
     {
         // Arrange
-        var sut = new PaymentsRepository();
+        var sut = CreateSut();
         var id = Guid.NewGuid();
         sut.Add(new PostPaymentResponse
         {
@@ -38,7 +44,7 @@ public class PaymentRepositoryTests
     public void GetPaymentForInvalidId_ReturnsNull()
     {
         // Arrange
-        var sut = new PaymentsRepository();
+        var sut = CreateSut();
 
         // Act
         var result = sut.Get(Guid.NewGuid());
@@ -51,7 +57,7 @@ public class PaymentRepositoryTests
     public void AddNewPayment_Succeeds()
     {
         // Arrange
-        var sut = new PaymentsRepository();
+        var sut = CreateSut();
         var payment = new PostPaymentResponse
         {
             Id = Guid.NewGuid(),
@@ -74,7 +80,7 @@ public class PaymentRepositoryTests
     public void AddWithClashingId_Throws()
     {
         // Arrange
-        var sut = new PaymentsRepository();
+        var sut = CreateSut();
         var payment1 = new PostPaymentResponse
         {
             Id = Guid.NewGuid(),

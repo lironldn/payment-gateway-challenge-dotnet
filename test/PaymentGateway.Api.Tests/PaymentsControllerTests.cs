@@ -2,6 +2,9 @@
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+using NSubstitute;
 
 using PaymentGateway.Api.Controllers;
 using PaymentGateway.Api.Models;
@@ -13,6 +16,8 @@ namespace PaymentGateway.Api.Tests;
 public class PaymentsControllerTests
 {
     private readonly Random _random = new();
+    private readonly PaymentsRepository _paymentsRepository =
+        new(Substitute.For<ILogger<PaymentsRepository>>());
     
     [Fact]
     public async Task RetrievesAPaymentSuccessfully()
@@ -29,13 +34,12 @@ public class PaymentsControllerTests
             Status = PaymentStatus.Authorized
         };
 
-        var paymentsRepository = new PaymentsRepository();
-        paymentsRepository.Add(payment);
+        _paymentsRepository.Add(payment);
 
         var webApplicationFactory = new WebApplicationFactory<PaymentsController>();
         var client = webApplicationFactory.WithWebHostBuilder(builder =>
             builder.ConfigureServices(services => ((ServiceCollection)services)
-                .AddSingleton(paymentsRepository)))
+                .AddSingleton(_paymentsRepository)))
             .CreateClient();
 
         // Act
