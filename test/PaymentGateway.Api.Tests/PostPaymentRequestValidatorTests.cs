@@ -13,7 +13,8 @@ public class PostPaymentRequestValidatorTests
     private static PostPaymentRequest ValidRequest() => new()
     {
         CardNumber = "123456789012345",
-        ExpiryDate = $"12/{DateTime.UtcNow.Year + 1}",
+        ExpiryMonth = 12,
+        ExpiryYear = DateTime.UtcNow.Year + 1,
         Currency = "USD",
         Amount = 100,
         Cvv = "123"
@@ -34,7 +35,8 @@ public class PostPaymentRequestValidatorTests
     {
         var validator = new PostPaymentRequestValidator();
         var request = ValidRequest();
-        request.ExpiryDate = $"{DateTime.UtcNow.Month}/{DateTime.UtcNow.Year}";
+        request.ExpiryYear = DateTime.UtcNow.Year;
+        request.ExpiryMonth = DateTime.UtcNow.Month;
         var result = validator.Validate(request);
         
         using var scope = new AssertionScope();
@@ -75,23 +77,21 @@ public class PostPaymentRequestValidatorTests
         result.Errors.Count.Should().Be(1);
         result.Errors[0].ErrorMessage.Should().Be("Card number must be 14-17 digits");       
     }
-    
+
     [Theory]
-    [InlineData("00/2099", "Expiry date must have a valid month (1-12)")]
-    [InlineData("12/0000", "Expiry date must be in the future")]
-    [InlineData("12/203A", "Expiry date must be in the format MM/YYYY")]
-    [InlineData("7/23", "Expiry date must be in the format MM/YYYY")]
-    public void Validate_ExpiryDate_ReturnsErrors(string expiryDate, string errorMessage)
+    [InlineData(0)]
+    [InlineData(13)]
+    public void Validate_ExpiryMonth_ReturnsErrors(int month)
     {
         var validator = new PostPaymentRequestValidator();
         var request = ValidRequest();
-        request.ExpiryDate = expiryDate;
+        request.ExpiryMonth = month;
         
         var result = validator.Validate(request);
         
         using var scope = new AssertionScope();
         result.Errors.Should().NotBeEmpty();
-        result.Errors.Should().Contain(x => x.ErrorMessage == errorMessage);      
+        result.Errors.Should().Contain(x => x.ErrorMessage == "Expiry month must be between 1 and 12");    
     }
 
     [Theory]

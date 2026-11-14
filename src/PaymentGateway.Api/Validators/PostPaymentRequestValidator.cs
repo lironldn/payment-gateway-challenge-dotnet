@@ -1,6 +1,5 @@
 using FluentValidation;
 
-using PaymentGateway.Api.Extensions;
 using PaymentGateway.Api.Models.Requests;
 
 namespace PaymentGateway.Api.Validators;
@@ -17,13 +16,10 @@ public class PostPaymentRequestValidator : AbstractValidator<PostPaymentRequest>
         RuleFor(x => x.CardNumber).Matches("^\\d{14,17}$")
             .WithMessage("Card number must be 14-17 digits");
         
-        RuleFor(x => x.ExpiryDate).Matches("^\\d{2}/\\d{4}$")
-            .WithMessage("Expiry date must be in the format MM/YYYY");
-        
         RuleFor(x => x.ExpiryMonth).InclusiveBetween(1,12)
-            .WithMessage("Expiry date must have a valid month (1-12)");
+            .WithMessage("Expiry month must be between 1 and 12");
         
-        RuleFor(x => $"{x.ExpiryDate.ExpiryDateYear():0000}-{x.ExpiryDate.ExpiryDateMonth():00}")
+        RuleFor(x => $"{x.ExpiryYear:0000}-{x.ExpiryMonth:00}")
             .GreaterThan($"{DateTime.Today.Year:0000}-{DateTime.Today.Month:00}")
             .WithMessage("Expiry date must be in the future");
         
