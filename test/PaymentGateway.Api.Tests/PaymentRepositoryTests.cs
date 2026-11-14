@@ -21,7 +21,7 @@ public class PaymentRepositoryTests
             Amount = 1000,
             Currency = "GBP",
             Status = PaymentStatus.Authorized,
-            CardNumberLastFour = 1234,
+            CardNumberLastFour = "1234",
             ExpiryMonth = 12,
             ExpiryYear = DateTime.Today.Year + 1
         });
@@ -58,7 +58,7 @@ public class PaymentRepositoryTests
             Amount = 1000,
             Currency = "GBP",
             Status = PaymentStatus.Authorized,
-            CardNumberLastFour = 1234,
+            CardNumberLastFour = "1234",
             ExpiryMonth = 12,
             ExpiryYear = DateTime.Today.Year + 1
         };
@@ -81,7 +81,7 @@ public class PaymentRepositoryTests
             Amount = 1000,
             Currency = "GBP",
             Status = PaymentStatus.Authorized,
-            CardNumberLastFour = 1234,
+            CardNumberLastFour = "1234",
             ExpiryMonth = 12,
             ExpiryYear = DateTime.Today.Year + 1
         };
@@ -91,7 +91,7 @@ public class PaymentRepositoryTests
             Amount = 2000,
             Currency = "USD",
             Status = PaymentStatus.Authorized,
-            CardNumberLastFour = 5678,
+            CardNumberLastFour = "5678",
             ExpiryMonth = 7,
             ExpiryYear = DateTime.Today.Year + 1
         };

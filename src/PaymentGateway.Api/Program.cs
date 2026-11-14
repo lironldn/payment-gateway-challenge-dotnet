@@ -1,3 +1,5 @@
+using FluentValidation;
+
 using PaymentGateway.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +12,16 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<PaymentsRepository>();
+
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+builder.Services.AddSingleton<IBankingClient, BankingClient>();
+
+builder.Services.AddHttpClient<IBankingClient, BankingClient>(client =>
+{
+    // TODO: this would be read from a config file, pointing to the simulator banking service
+    client.BaseAddress = new Uri("http://localhost:8080/");
+});
 
 var app = builder.Build();
 

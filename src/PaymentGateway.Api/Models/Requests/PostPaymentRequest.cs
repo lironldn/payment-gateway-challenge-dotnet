@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace PaymentGateway.Api.Models.Requests;
+﻿namespace PaymentGateway.Api.Models.Requests;
 
 public record PostPaymentRequest
 {
