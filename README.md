@@ -49,6 +49,7 @@ Submits a payment for authorisation.
 - `Rejected` — request failed validation (returned immediately, not forwarded to bank)
 - `Declined` — bank refused the payment
 - `Authorized` — bank approved the payment
+- `503 Service Unavailable` — the bank returned an error, so the API could not complete the authorization
 
 ### `GET /api/payments/{id}`
 

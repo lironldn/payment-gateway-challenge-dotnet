@@ -2,6 +2,9 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using FluentValidation;
+
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -10,8 +13,10 @@ using NSubstitute;
 
 using PaymentGateway.Api.Controllers;
 using PaymentGateway.Api.Models;
+using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Api.Services;
+using PaymentGateway.Api.Validators;
 
 namespace PaymentGateway.Api.Tests;
 
@@ -71,5 +76,39 @@ public class PaymentsControllerTests
         
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Returns503WhenBankUnavailable()
+    {
+        // Arrange
+        var validator = new PostPaymentRequestValidator();
+        var bankingClient = Substitute.For<IBankingClient>();
+        bankingClient
+            .AuthorizePaymentAsync(Arg.Any<AuthorisePaymentRequest>())
+            .Returns(Task.FromException<AuthorisePaymentResponse>(new HttpRequestException("Bank unavailable", null, HttpStatusCode.ServiceUnavailable)));
+
+        var controller = new PaymentsController(
+            validator,
+            bankingClient,
+            _paymentsRepository,
+            Substitute.For<ILogger<PaymentsController>>());
+
+        var request = new PostPaymentRequest
+        {
+            CardNumber = "1234567812345678",
+            ExpiryMonth = 12,
+            ExpiryYear = DateTime.UtcNow.Year + 1,
+            Currency = "GBP",
+            Amount = 123,
+            Cvv = "123"
+        };
+
+        // Act
+        var result = await controller.PostPaymentAsync(request);
+
+        // Assert
+        var statusResult = Assert.IsType<StatusCodeResult>(result.Result);
+        Assert.Equal((int)HttpStatusCode.ServiceUnavailable, statusResult.StatusCode);
     }
 }

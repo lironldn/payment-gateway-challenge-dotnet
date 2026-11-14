@@ -1,4 +1,6 @@
-﻿using FluentValidation;
+﻿using System.Net;
+
+using FluentValidation;
 
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,12 +24,12 @@ public class PaymentsController(
     public async Task<ActionResult<PostPaymentResponse?>> GetPaymentAsync(Guid id)
     {
         logger.LogInformation("Getting payment with ID {id}", id);
-        
+
         // in a real-world app, the calls to the repository would be async calls;
         var payment = await Task.FromResult(paymentsRepository.Get(id));
         if (payment == null)
         {
-            logger.LogWarning("Payment with ID {id} not found", id);           
+            logger.LogWarning("Payment with ID {id} not found", id);
             return NotFound();
         }
 
@@ -37,11 +39,12 @@ public class PaymentsController(
     [HttpPost]
     public async Task<ActionResult<PostPaymentResponse>> PostPaymentAsync([FromBody] PostPaymentRequest request)
     {
-        logger.LogInformation("Processing payment for {amount} {currency} to {cardNumber}", request.Amount, request.Currency, request.CardNumber.MaskAllButLastFour());       
+        logger.LogInformation("Processing payment for {amount} {currency} to {cardNumber}", request.Amount,
+            request.Currency, request.CardNumber.MaskAllButLastFour());
         var validation = await validator.ValidateAsync(request);
         if (!validation.IsValid)
         {
-            logger.LogInformation("Payment validation failed: {errors}", validation.Errors);           
+            logger.LogInformation("Payment validation failed: {errors}", validation.Errors);
             return new OkObjectResult(new PostPaymentResponse
             {
                 Id = Guid.Empty,
@@ -62,22 +65,30 @@ public class PaymentsController(
             ExpiryDate = $"{request.ExpiryMonth:00}/{request.ExpiryYear:0000}",
             Amount = request.Amount
         };
-        
-        var bankingResponse = await bankingClient.AuthorizePaymentAsync(authorisePaymentRequest);
-        logger.LogInformation("Banking response: {response}", bankingResponse);       
-        
-        var response = new PostPaymentResponse
+
+        try
         {
-            Id = Guid.NewGuid(),
-            Status = bankingResponse.Authorized ? PaymentStatus.Authorized : PaymentStatus.Declined,
-            CardNumberLastFour = request.CardNumber[^4..],
-            ExpiryMonth = request.ExpiryMonth,
-            ExpiryYear = request.ExpiryYear,
-            Currency = request.Currency,
-            Amount = request.Amount
-        };
-        
-        paymentsRepository.Add(response);
-        return new OkObjectResult(response);       
+            var bankingResponse = await bankingClient.AuthorizePaymentAsync(authorisePaymentRequest);
+            logger.LogInformation("Banking response: {response}", bankingResponse);
+
+            var response = new PostPaymentResponse
+            {
+                Id = Guid.NewGuid(),
+                Status = bankingResponse.Authorized ? PaymentStatus.Authorized : PaymentStatus.Declined,
+                CardNumberLastFour = request.CardNumber[^4..],
+                ExpiryMonth = request.ExpiryMonth,
+                ExpiryYear = request.ExpiryYear,
+                Currency = request.Currency,
+                Amount = request.Amount
+            };
+
+            paymentsRepository.Add(response);
+            return new OkObjectResult(response);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Banking call failed");
+            return new StatusCodeResult((int)HttpStatusCode.ServiceUnavailable);
+        }
     }
 }
