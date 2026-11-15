@@ -76,7 +76,7 @@ Retrieves a previously processed payment by its ID.
 ### 1. Start the local stack
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 This starts:
@@ -85,6 +85,8 @@ This starts:
 - the Mountebank admin UI on `http://localhost:2525`
 
 The API container is configured to talk to the simulator using the Docker network host name `bank_simulator`, while the local appsettings file still defaults to `http://localhost:8080/` for non-container runs.
+
+For the acceptance tests, the services are expected to be already running before the test run begins.
 
 ### 2. Run the API locally outside Docker
 
@@ -119,6 +121,13 @@ Swagger UI is available at `https://localhost:{port}/swagger` once running.
 ```bash
 dotnet test
 ```
+
+The acceptance tests assume the API and bank simulator are already running locally. They probe `http://localhost:5100` and validate the four core scenarios:
+
+- authorised payment
+- declined payment
+- rejected payment
+- banking service unavailable / 503
 
 ## Project Structure
 
