@@ -73,15 +73,20 @@ Retrieves a previously processed payment by its ID.
 - .NET 8 SDK
 - Docker (for the bank simulator)
 
-### 1. Start the bank simulator
+### 1. Start the local stack
 
 ```bash
-docker-compose up
+docker-compose up --build
 ```
 
-This starts Mountebank on port 2525 (admin) and the bank imposter on port 8080.
+This starts:
+- the API in its own container on `http://localhost:5100`
+- the Mountebank bank simulator on `http://localhost:8080`
+- the Mountebank admin UI on `http://localhost:2525`
 
-### 2. Run the API
+The API container is configured to talk to the simulator using the Docker network host name `bank_simulator`, while the local appsettings file still defaults to `http://localhost:8080/` for non-container runs.
+
+### 2. Run the API locally outside Docker
 
 The banking client base URL and logging configuration are read from `src/PaymentGateway.Api/appsettings.json`:
 
