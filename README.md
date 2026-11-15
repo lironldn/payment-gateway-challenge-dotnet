@@ -147,7 +147,30 @@ test/
     PaymentsControllerTests.cs
     PaymentRepositoryTests.cs
     PostPaymentRequestValidatorTests.cs
+  PaymentGateway.Api.AcceptanceTests/
+    Features/
+      PaymentsApi.feature
+    StepDefinitions/
+      PaymentsApiSteps.cs
+    ScenarioHooks.cs
+    xunit.runner.json
 
 imposters/              # Bank simulator configuration (Mountebank)
 docker-compose.yml      # Starts the bank simulator
 ```
+
+## Test Types
+
+### Component tests
+
+The component tests live under `test/PaymentGateway.Api.Tests` and validate controller, repository, and request validation behaviour in isolation.
+
+### Acceptance tests
+
+The acceptance suite lives under `test/PaymentGateway.Api.AcceptanceTests` and exercises the full API flow against the running local stack on `http://localhost:5100`.
+
+It covers:
+- authorised payment
+- declined payment
+- rejected payment
+- bank unavailable / 503 response
