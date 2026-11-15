@@ -83,11 +83,23 @@ This starts Mountebank on port 2525 (admin) and the bank imposter on port 8080.
 
 ### 2. Run the API
 
-The banking client base URL is read from configuration in `src/PaymentGateway.Api/appsettings.json`:
+The banking client base URL and logging configuration are read from `src/PaymentGateway.Api/appsettings.json`:
 
 ```json
 "BankingClient": {
   "BaseUrl": "http://localhost:8080/"
+},
+"Serilog": {
+  "MinimumLevel": {
+    "Default": "Information",
+    "Override": {
+      "Microsoft": "Warning",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "WriteTo": [
+    { "Name": "Console" }
+  ]
 }
 ```
 
