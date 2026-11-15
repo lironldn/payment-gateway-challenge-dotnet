@@ -1,12 +1,17 @@
 using FluentValidation;
 
+using Serilog;
+
 using PaymentGateway.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Host.UseSerilog((context, services, loggerConfiguration) =>
+    loggerConfiguration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services));
 
-builder.Logging.AddConsole();
+// Add services to the container.
 
 builder.Services.AddProblemDetails();
 
@@ -32,6 +37,7 @@ builder.Services.AddHttpClient<IBankingClient, BankingClient>((_, client) =>
 
 var app = builder.Build();
 
+app.UseSerilogRequestLogging();
 app.UseExceptionHandler("/error");
 
 // Configure the HTTP request pipeline.
