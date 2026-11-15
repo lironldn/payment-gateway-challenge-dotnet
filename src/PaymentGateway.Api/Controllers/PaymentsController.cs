@@ -49,7 +49,7 @@ public class PaymentsController(
             {
                 Id = Guid.Empty,
                 Status = PaymentStatus.Rejected,
-                CardNumberLastFour = request.CardNumber[^4..],
+                CardNumberLastFour = request.CardNumber.LastFour(),
                 ExpiryMonth = request.ExpiryMonth,
                 ExpiryYear = request.ExpiryYear,
                 Currency = request.Currency,
@@ -75,7 +75,7 @@ public class PaymentsController(
             {
                 Id = Guid.NewGuid(),
                 Status = bankingResponse.Authorized ? PaymentStatus.Authorized : PaymentStatus.Declined,
-                CardNumberLastFour = request.CardNumber[^4..],
+                CardNumberLastFour = request.CardNumber.LastFour(),
                 ExpiryMonth = request.ExpiryMonth,
                 ExpiryYear = request.ExpiryYear,
                 Currency = request.Currency,
