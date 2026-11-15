@@ -83,6 +83,14 @@ This starts Mountebank on port 2525 (admin) and the bank imposter on port 8080.
 
 ### 2. Run the API
 
+The banking client base URL is read from configuration in `src/PaymentGateway.Api/appsettings.json`:
+
+```json
+"BankingClient": {
+  "BaseUrl": "http://localhost:8080/"
+}
+```
+
 ```bash
 dotnet run --project src/PaymentGateway.Api
 ```
