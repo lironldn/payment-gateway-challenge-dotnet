@@ -38,7 +38,7 @@ public class PaymentsApiSteps
         _lastResponse = await _httpClient.PostAsJsonAsync(BaseUrl + "/api/payments", payload);
         var body = await _lastResponse.Content.ReadAsStringAsync();
 
-        if (_lastResponse.StatusCode == HttpStatusCode.OK && !string.IsNullOrWhiteSpace(body))
+        if (!string.IsNullOrWhiteSpace(body) && body.TrimStart().StartsWith("{"))
         {
             _lastPayment = JsonDocument.Parse(body).RootElement;
         }
@@ -57,6 +57,22 @@ public class PaymentsApiSteps
         Assert.Equal(expectedStatus, _lastPayment!.Value.GetProperty("status").GetString());
     }
 
+    [Then("the response details should be")]
+    public void ThenResponseDetailsShouldBe(Table table)
+    {
+        Assert.NotNull(_lastPayment);
+
+        var expected = table.CreateInstance<ResponseExpectation>();
+        var actual = _lastPayment!.Value;
+
+        Assert.Equal(expected.CardNumberLastFour, actual.GetProperty("cardNumberLastFour").GetString());
+        Assert.Equal(expected.ExpiryMonth, actual.GetProperty("expiryMonth").GetInt32());
+        Assert.Equal(expected.ExpiryYear, actual.GetProperty("expiryYear").GetInt32());
+        Assert.Equal(expected.Currency, actual.GetProperty("currency").GetString());
+        Assert.Equal(expected.Amount, actual.GetProperty("amount").GetInt32());
+        Assert.Equal(expected.Status, actual.GetProperty("status").GetString());
+    }
+
     private sealed class PaymentRequestInput
     {
         public string CardNumber { get; set; } = string.Empty;
@@ -65,5 +81,15 @@ public class PaymentsApiSteps
         public int Amount { get; set; }
         public string Currency { get; set; } = string.Empty;
         public string Cvv { get; set; } = string.Empty;
+    }
+
+    private sealed class ResponseExpectation
+    {
+        public string CardNumberLastFour { get; set; } = string.Empty;
+        public int ExpiryMonth { get; set; }
+        public int ExpiryYear { get; set; }
+        public string Currency { get; set; } = string.Empty;
+        public int Amount { get; set; }
+        public string Status { get; set; } = string.Empty;
     }
 }

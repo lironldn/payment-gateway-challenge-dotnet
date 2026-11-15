@@ -45,7 +45,7 @@ public class PaymentsController(
         if (!validation.IsValid)
         {
             logger.LogInformation("Payment validation failed: {errors}", validation.Errors);
-            return new OkObjectResult(new PostPaymentResponse
+            return new BadRequestObjectResult(new PostPaymentResponse
             {
                 Id = Guid.Empty,
                 Status = PaymentStatus.Rejected,

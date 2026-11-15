@@ -9,6 +9,9 @@ Scenario: A customer posts an authorised payment
         | 4242424242424241 |          12 |       2030 |    100 | GBP      | 123 |
     Then the response status should be 200
     And the response payment status should be "Authorized"
+    And the response details should be
+        | CardNumberLastFour | ExpiryMonth | ExpiryYear | Currency | Amount | Status     |
+        |               4241 |          12 |       2030 | GBP      |    100 | Authorized |
 
 Scenario: A customer posts a declined payment
     When a customer submits a payment
@@ -16,13 +19,19 @@ Scenario: A customer posts a declined payment
         | 4242424242424242 |          12 |       2030 |    250 | EUR      | 123 |
     Then the response status should be 200
     And the response payment status should be "Declined"
+    And the response details should be
+        | CardNumberLastFour | ExpiryMonth | ExpiryYear | Currency | Amount | Status   |
+        |               4242 |          12 |       2030 | EUR      |    250 | Declined |
 
 Scenario Outline: A customer posts a rejected payment
     When a customer submits a payment
         | CardNumber       | ExpiryMonth | ExpiryYear | Amount   | Currency   | Cvv   |
         | 4242424242424241 |          12 | <Year>     | <Amount> | <Currency> | <Cvv> |
-    Then the response status should be 200
+    Then the response status should be 400
     And the response payment status should be "Rejected"
+    And the response details should be
+        | CardNumberLastFour | ExpiryMonth | ExpiryYear | Currency   | Amount   | Status   |
+        |               4241 |          12 | <Year>     | <Currency> | <Amount> | Rejected |
     Examples:
     | Year | Amount | Currency | Cvv |
     | 2020 |    125 | EUR      | 123 |
